@@ -1,0 +1,170 @@
+#define TRUE 1 
+#include <stdio.h> 
+#include <conio.h>
+#include <process.h> 
+#include <stdlib.h> 
+#include "FunctionsUsed.h"
+#include <iostream>
+#pragma warning(disable : 4996)
+int BlockWriteFile(char* FileName, const char* Mode_Open_File,unsigned count_matrix, unsigned row, unsigned col); 
+int* InitMatrix(unsigned,	unsigned, unsigned);
+int* FreeMemory(unsigned, unsigned);
+void DisplayFile(char*, const char*, unsigned, unsigned);
+void DisplayMatrix(int*, unsigned, unsigned); 
+int* SimpleMatrix(unsigned, unsigned); 
+void WorkFile(char*, const char*, unsigned, unsigned); //поматрично обрабатывает согласно постановке задачи содержимое файла с именем String, открытый в режиме Mode
+int SumElemMatrix(int*, unsigned, unsigned); //возвращает сумму элементов матрицы, наход€щейс€ по адресу Pointer
+
+int main(void)
+{
+
+
+
+    unsigned k,  n, m;
+    char FileName[20],
+        
+
+    while (TRUE) 
+    { 
+        printf("\nEnter k  number of matrixs in  file $ "); 
+        scanf("%u ", &k, );
+
+        printf("\nEnter n x m dimentions of matrixs:\n"); 
+        scanf("%u%u", &n, &m);
+        if ((k > 0) && (n > 0) && (m > 0) )
+            break;
+        printf("\nNumber is incorrect!!! Try Ф Уagain!!!\n");
+    }
+
+    printf("\nEnter the name of file: "); 
+        scanf("%s", FileName);
+
+        
+
+
+    system("cls");
+
+   
+    printf("\nThe contents of file <<%s>>:\n", FileName);
+    DisplayFile(FileName, "rb", n, m);
+
+    
+
+
+    WorkFile(FileName, "r+b", n, m);
+    
+    printf("\nThe new contents of FILE <<%s>>:\n", FileNameThird);
+    DisplayFile(FileName, "rb", n, m);
+    printf("\n Press any key to exit...");  
+        getchar(); 
+        return 0; 
+}
+int* InitMatrix(unsigned l, unsigned n, unsigned m)
+{
+    unsigned i;
+    int* Pointer = (int*)malloc(n * m * sizeof(int));
+    for (i = 0; i < n * m; i++) { Pointer[i] = l + 1; }  
+    return Pointer;
+}
+
+int* FreeMemory(unsigned n, unsigned m)
+{ 
+    int* Pointer = (int*)malloc(n * m * sizeof(int));
+    return Pointer;
+}
+
+int BlockWriteFile(char* FileName, const char* Mode, unsigned count_matrix, unsigned row, unsigned col)
+{
+    int BufSize = sizeof(int) * row * col,
+        counter_matrix = 0;
+    int* Pointer = (int*)malloc(BufSize);
+    unsigned i; 
+    FILE* FilePointer = fopen(FileName, Mode);
+    if (FilePointer == NULL) 
+    { 
+        printf("Can't open file to write.");
+        getchar();
+        abort();
+    }
+    for (i = 0; i < count_matrix; i++) 
+    {
+        Pointer = InitMatrix(i, row, col);
+        counter_matrix++;
+        fwrite(Pointer, BufSize, 1, FilePointer); 
+    }
+    fclose(FilePointer);
+    free(Pointer);
+    return counter_matrix;
+}
+void DisplayFile(char* String, const char* Mode, unsigned n, unsigned m)
+{
+    int BufSize = sizeof(int) * n * m, Sector = 0; 
+    int* Pointer = FreeMemory(n, m);
+    FILE* FilePointer = fopen(String, Mode);
+    if (FilePointer == NULL) { printf("\nCan't open file to read."); getch(); abort(); }
+    
+
+        while (fread(Pointer, BufSize, 1, FilePointer) != 0)
+        { 
+            printf("\n %d's  matrix \n", (Sector + 1));
+            DisplayMatrix(Pointer, n, m);
+            Sector++; 
+        }
+    fclose(FilePointer); 
+    free(Pointer);
+}
+void DisplayMatrix(int* Pointer, unsigned n, unsigned m)
+{
+    unsigned i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            printf("%4d", *(Pointer + i * m + j));
+        }
+        printf("\n");
+    }
+}
+int* SimpleMatrix(unsigned n, unsigned m)
+{
+    unsigned i; int* Pointer = (int*)malloc(sizeof(int) * n * m);
+    for (i = 0; i < n * m; i++) { *(Pointer + i) = 0; } 
+    return Pointer; 
+}
+
+int SumElemMatrix(int* Pointer, unsigned n, unsigned m) 
+{
+    int s = 0;  unsigned i;
+    for (i = 0; i < n * m; i++) { s = s + *(Pointer + i); }
+            return s;
+}
+
+
+
+
+void WorkFile(char* String, const char* Mode, unsigned n, unsigned m)
+{
+    int* Pointer = FreeMemory(n, m);
+    int  BufSize = sizeof(int) * n * m;
+    int* Simple  = nullptr, 
+         Sum     = 0;
+    FILE* FilePointer = fopen(String, Mode);
+    if (FilePointer == NULL) 
+    { 
+        printf("Can't open file to read.");
+        getchar();
+        abort();
+    } 
+    while (fread(Pointer, BufSize, 1, FilePointer) != 0)
+    {
+        Sum = SumElemMatrix(Pointer, n, m);
+        if (Sum % 2 == 0) 
+        {
+            fseek(FilePointer, -1L * BufSize, SEEK_CUR);
+            Simple = SimpleMatrix(n, m); 
+            fwrite(Simple, BufSize, 1, FilePointer);
+            fseek(FilePointer, 0L, SEEK_CUR);
+        }
+    }
+    fclose(FilePointer);  
+    free(Pointer);
+    free(Simple);
+}
